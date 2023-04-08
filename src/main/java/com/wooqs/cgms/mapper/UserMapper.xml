@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wooqs.cgms.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.wooqs.cgms.model.User">
+        <id column="user_id" property="userId" />
+        <result column="username" property="username" />
+        <result column="password" property="password" />
+        <result column="name" property="name" />
+        <result column="phone" property="phone" />
+        <result column="email" property="email" />
+        <result column="register_time" property="registerTime" />
+        <result column="last_login_time" property="lastLoginTime" />
+        <result column="role_id" property="roleId" />
+    </resultMap>
+
+    <select id="getById" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        SELECT * FROM user WHERE user_id = #{id}
+    </select>
+
+    <select id="getByUsername" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT * FROM user WHERE username = #{username}
+    </select>
+
+    <select id="getAll" resultMap="BaseResultMap">
+        SELECT * FROM user
+    </select>
+
+    <insert id="insert" parameterType="com.wooqs.cgms.model.User">
+        INSERT INTO user(username, password, name, phone, email, register_time, last_login_time, role_id)
+        VALUES(#{username}, #{password}, #{name}, #{phone}, #{email}, #{registerTime}, #{lastLoginTime}, #{roleId})
+    </insert>
+
+    <update id="update" parameterType="com.wooqs.cgms.model.User">
+        UPDATE user SET
+                        username = #{username},
+                        password = #{password},
+                        name = #{name},
+                        phone = #{phone},
+                        email = #{email},
+                        register_time = #{registerTime},
+                        last_login_time = #{lastLoginTime},
+                        role_id = #{roleId}
+        WHERE user_id = #{userId}
+    </update>
+
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM user WHERE user_id = #{id}
+    </delete>
+
+</mapper>

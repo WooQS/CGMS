@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wooqs.cgms.mapper.RoleMapper">
+
+    <select id="getById" parameterType="java.lang.Long" resultType="com.wooqs.cgms.model.Role">
+        SELECT * FROM role WHERE role_id = #{id}
+    </select>
+
+    <select id="getAll" resultType="com.wooqs.cgms.model.Role">
+        SELECT * FROM role
+    </select>
+
+    <insert id="insert" parameterType="com.wooqs.cgms.model.Role" useGeneratedKeys="true" keyProperty="roleId">
+        INSERT INTO role(role_name) VALUES(#{roleName})
+    </insert>
+
+    <update id="update" parameterType="com.wooqs.cgms.model.Role">
+        UPDATE role SET role_name = #{roleName} WHERE role_id = #{roleId}
+    </update>
+
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM role WHERE role_id = #{id}
+    </delete>
+
+</mapper>
