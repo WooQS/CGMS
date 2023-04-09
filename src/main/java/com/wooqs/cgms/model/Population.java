@@ -1,8 +1,8 @@
 package com.wooqs.cgms.model;
 
 public class Population {
-    private Integer populationId;
-    private Integer communityId;
+    private Long populationId;
+    private Long communityId;
     private String name;
     private String gender;
     private Integer age;
@@ -11,19 +11,19 @@ public class Population {
     private String hometown;
     private String address;
 
-    public Integer getPopulationId() {
+    public Long getPopulationId() {
         return populationId;
     }
 
-    public void setPopulationId(Integer populationId) {
+    public void setPopulationId(Long populationId) {
         this.populationId = populationId;
     }
 
-    public Integer getCommunityId() {
+    public Long getCommunityId() {
         return communityId;
     }
 
-    public void setCommunityId(Integer communityId) {
+    public void setCommunityId(Long communityId) {
         this.communityId = communityId;
     }
 

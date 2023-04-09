@@ -3,25 +3,25 @@ package com.wooqs.cgms.model;
 import java.time.LocalDateTime;
 
 public class Log {
-    private Integer logId;
-    private Integer userId;
+    private Long logId;
+    private Long userId;
     private String type;
     private LocalDateTime time;
     private String description;
 
-    public Integer getLogId() {
+    public Long getLogId() {
         return logId;
     }
 
-    public void setLogId(Integer logId) {
+    public void setLogId(Long logId) {
         this.logId = logId;
     }
 
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
