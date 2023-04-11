@@ -3,7 +3,7 @@
 <mapper namespace="com.wooqs.cgms.mapper.UserMapper">
 
     <resultMap id="BaseResultMap" type="com.wooqs.cgms.model.User">
-        <id column="user_id" property="userId" />
+        <id column="userId" property="userId" />
         <result column="username" property="username" />
         <result column="password" property="password" />
         <result column="name" property="name" />
@@ -11,7 +11,7 @@
         <result column="email" property="email" />
         <result column="register_time" property="registerTime" />
         <result column="last_login_time" property="lastLoginTime" />
-        <result column="role_id" property="roleId" />
+        <result column="roleId" property="roleId" />
     </resultMap>
 
     <select id="getById" resultMap="BaseResultMap" parameterType="java.lang.Long">

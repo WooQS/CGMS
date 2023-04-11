@@ -6,13 +6,13 @@
 <mapper namespace="com.wooqs.cgms.mapper.PopulationMapper">
 
     <resultMap id="populationResultMap" type="com.wooqs.cgms.model.Population">
-        <id property="populationId" column="population_id" />
-        <result property="communityId" column="community_id" />
+        <id property="populationId" column="populationId" />
+        <result property="communityId" column="communityId" />
         <result property="name" column="name" />
         <result property="gender" column="gender" />
         <result property="age" column="age" />
         <result property="job" column="job" />
-        <result property="idCard" column="id_card" />
+        <result property="idCard" column="idCard" />
         <result property="hometown" column="hometown" />
         <result property="address" column="address" />
         <result property="createTime" column="create_time" />

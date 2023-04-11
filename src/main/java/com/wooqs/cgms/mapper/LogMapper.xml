@@ -3,8 +3,8 @@
 <mapper namespace="com.wooqs.cgms.mapper.LogMapper">
 
     <resultMap id="logResultMap" type="com.wooqs.cgms.model.Log">
-        <id property="logId" column="log_id" />
-        <result property="userId" column="user_id" />
+        <id property="logId" column="logId" />
+        <result property="userId" column="userId" />
         <result property="type" column="type" />
         <result property="time" column="time" />
         <result property="description" column="description" />

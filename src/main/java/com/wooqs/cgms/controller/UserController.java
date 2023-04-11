@@ -4,12 +4,14 @@ import com.wooqs.cgms.model.User;
 import com.wooqs.cgms.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RequestMapping("/users")
 public class UserController {
 
@@ -80,6 +82,21 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PostMapping("/login")
+    @ResponseBody
+    public ResponseEntity<Long> login(@RequestParam String username, @RequestParam String password) {
+        User loginUser = userService.getByUsername(username);
+        if (loginUser != null && loginUser.getPassword().equals(password)) {
+            if (loginUser.getRoleId() == 1 || loginUser.getRoleId() == 2 ) {
+                return new ResponseEntity<>(loginUser.getRoleId(), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
     }
 }
