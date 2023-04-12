@@ -9,6 +9,8 @@ public interface PopulationService {
     List<Population> getAllPopulations();
     // 根据ID获取人口信息
     Population getPopulationById(Long id);
+    // 根据社区ID获取人口信息
+    List<Population> getPopulationByCommunityId(Long id);
     // 添加人口信息
     void addPopulation(Population population);
     // 更新人口信息

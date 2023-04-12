@@ -27,6 +27,11 @@ public class PopulationServiceImpl implements PopulationService {
     public Population getPopulationById(Long id) {
         return populationMapper.getById(id);
     }
+    // 实现根据社区 ID 获取同一个社区的用户的方法
+    @Override
+    public List<Population> getPopulationByCommunityId(Long communityId) {
+        return populationMapper.getByCommunityId(communityId);
+    }
     // 添加人口信息
     @Override
     public void addPopulation(Population population) {

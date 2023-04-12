@@ -20,7 +20,11 @@
     </resultMap>
 
     <select id="getById" resultMap="populationResultMap" parameterType="java.lang.Long">
-        SELECT * FROM population WHERE population_id = #{id}
+        SELECT * FROM population WHERE populationId = #{id}
+    </select>
+
+    <select id="getByCommunityId" resultMap="populationResultMap" parameterType="java.lang.Long">
+        SELECT * FROM population WHERE communityId = #{id}
     </select>
 
     <select id="getAll" resultMap="populationResultMap">
@@ -28,26 +32,26 @@
     </select>
 
     <insert id="insert" parameterType="com.wooqs.cgms.model.Population" useGeneratedKeys="true" keyProperty="populationId">
-        INSERT INTO population(community_id, name, gender, age, job, id_card, hometown, address)
+        INSERT INTO population(communityId, name, gender, age, job, id_card, hometown, address)
         VALUES(#{communityId}, #{name}, #{gender}, #{age}, #{job}, #{idCard}, #{hometown}, #{address})
     </insert>
 
     <update id="update" parameterType="com.wooqs.cgms.model.Population">
         UPDATE population SET
-                              community_id = #{communityId},
+                              communityId = #{communityId},
                               name = #{name},
                               gender = #{gender},
                               age = #{age},
                               job = #{job},
-                              id_card = #{idCard},
+                              idCard = #{idCard},
                               hometown = #{hometown},
                               address = #{address},
-                              update_time = CURRENT_TIMESTAMP(0)
-        WHERE population_id = #{populationId}
+                              updateTime = CURRENT_TIMESTAMP(0)
+        WHERE populationId = #{populationId}
     </update>
 
     <delete id="deleteById" parameterType="java.lang.Long">
-        DELETE FROM population WHERE population_id = #{id}
+        DELETE FROM population WHERE populationId = #{id}
     </delete>
 
 </mapper>

@@ -31,6 +31,14 @@ public class PopulationController {
         return new ResponseEntity<>(population, HttpStatus.OK);
     }
 
+    // 根据社区ID获取同一个社区的Population记录
+    @GetMapping("/community/{communityId}")
+    public ResponseEntity<List<Population>> getPopulationsByCommunityId(@PathVariable Long communityId) {
+        List<Population> populations = populationService.getPopulationByCommunityId(communityId);
+        return new ResponseEntity<>(populations, HttpStatus.OK);
+    }
+
+
     // 添加一个新的Population记录
     @PostMapping
     public ResponseEntity<Void> addPopulation(@RequestBody Population population) {
