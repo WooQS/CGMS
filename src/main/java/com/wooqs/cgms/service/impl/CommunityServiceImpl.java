@@ -22,6 +22,12 @@ public class CommunityServiceImpl implements CommunityService {
     public Community getById(Long id) {
         return communityMapper.getById(id);
     }
+
+    //根据ID获取社区信息
+    @Override
+    public List<Community> getByAdminId(Long AdminId) {
+        return communityMapper.getByAdminId(AdminId);
+    }
     //获取所有社区信息列表
     @Override
     public List<Community> getAll() {

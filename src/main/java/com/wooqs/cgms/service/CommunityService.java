@@ -7,6 +7,10 @@ import java.util.List;
 public interface CommunityService {
     //根据ID获取社区信息
     Community getById(Long id);
+
+    //根据ID获取社区信息
+    List<Community> getByAdminId(Long AdminId);
+
     //获取所有社区信息列表
     List<Community> getAll();
     //保存社区信息

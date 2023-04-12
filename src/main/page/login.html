@@ -24,10 +24,10 @@
 						if(result) {
 							// 登录成功，根据用户角色跳转到不同页面
 							$.messager.alert("提示", "登录成功！", "info");
-							if(result == 1) {
+							if(result.roleId == 1) {
 								window.location.href = "system_index.html";
 							} else {
-								window.location.href = "admin_index.html";
+								window.location.href = "admin_index.html?userId="+result.userId;
 							}
 						}
 					},

@@ -33,6 +33,17 @@ public class CommunityController {
         }
     }
 
+    // 通过AdminID获取Community对象
+    @GetMapping("/admin/{id}")
+    public ResponseEntity<List<Community>> getByAdminId(@PathVariable String id) {
+        List<Community> community = communityService.getByAdminId(Long.parseLong(id));
+        if (community != null) {
+            return new ResponseEntity<>(community, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     // 获取所有Community对象
     @GetMapping
     public List<Community> getAll() {

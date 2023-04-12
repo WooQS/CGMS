@@ -87,7 +87,7 @@
         }
     </style>
 </head>
-<body class="easyui-layout">
+<body class="easyui-layout" onload="loadData()">
 <div class="nav" data-options="region:'north',border:false">
     <h1>社区网格管理系统</h1>
     <ul>
@@ -106,7 +106,6 @@
     <div style="margin-bottom: 10px">
         <label for="community-select">选择社区：</label>
         <select id="community-select" style="width: 200px">
-            <option value="">选择社区</option>
         </select>
         <a href="#" class="easyui-linkbutton" onclick="loadData()">查询</a>
     </div>
@@ -123,14 +122,16 @@
 </div>
 </body>
 <script type="text/javascript">
-    // 使用Ajax获取社区数据并动态生成下拉选项
-    $.getJSON('http://127.0.0.1:8080/communities', function(data) {
-        var options = '';
-        $.each(data, function(index, community) {
-            options += '<option value="' + community.communityId + '">' + community.name + '</option>';
+    $(document).ready(function() {
+        $.getJSON('http://127.0.0.1:8080/communities', function(data) {
+            var options = '';
+            $.each(data, function(index, community) {
+                options += '<option value="' + community.communityId + '">' + community.name + '</option>';
+            });
+            $('#community-select').append(options);
         });
-        $('#community-select').append(options);
     });
+
 
     // 加载数据
     function loadData() {

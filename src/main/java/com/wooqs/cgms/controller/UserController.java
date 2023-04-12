@@ -87,11 +87,11 @@ public class UserController {
 
     @PostMapping("/login")
     @ResponseBody
-    public ResponseEntity<Long> login(@RequestParam String username, @RequestParam String password) {
+    public ResponseEntity<User> login(@RequestParam String username, @RequestParam String password) {
         User loginUser = userService.getByUsername(username);
         if (loginUser != null && loginUser.getPassword().equals(password)) {
             if (loginUser.getRoleId() == 1 || loginUser.getRoleId() == 2 ) {
-                return new ResponseEntity<>(loginUser.getRoleId(), HttpStatus.OK);
+                return new ResponseEntity<>(loginUser, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.FORBIDDEN);
             }

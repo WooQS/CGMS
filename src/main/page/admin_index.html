@@ -12,6 +12,9 @@
     <!-- 引入EasyUI的样式文件 -->
     <link rel="stylesheet" type="text/css" href="libs/themes/default/easyui.css">
 
+    <!-- 引入Echarts文件 -->
+    <script type="text/javascript" src="js/echarts.min.js"></script>
+
     <style type="text/css">
 
         /* 调整顶部导航栏样式 */
@@ -84,40 +87,118 @@
         }
     </style>
 </head>
-<body class="easyui-layout">
-    <div class="nav" data-options="region:'north',border:false">
-        <h1>社区网格管理系统</h1>
-        <ul>
-            <li><a href="login.html">退出</a></li>
-        </ul>
+<body class="easyui-layout" onload="loadData()">
+<div class="nav" data-options="region:'north',border:false">
+    <h1>社区网格管理系统</h1>
+    <ul>
+        <li><a href="login.html">退出</a></li>
+    </ul>
+</div>
+<div class="sidebar" data-options="region:'west',split:true,border:false">
+    <ul>
+        <li><a id="index" href="admin_index.html" style="font-weight: bold">数据统计</a></li>
+        <li><a id="population" href="admin_population.html">居民管理</a></li>
+        <li><a id="log" href="admin_log.html">日志查看</a></li>
+    </ul>
+</div>
+<div class="main" data-options="region:'center',border:false">
+    <div style="margin-bottom: 10px">
+        <label for="community-select">选择社区：</label>
+        <select id="community-select" style="width: 200px">
+        </select>
+        <a href="#" class="easyui-linkbutton" onclick="loadData()">查询</a>
     </div>
-    <div class="sidebar" data-options="region:'west',split:true,border:false">
-        <ul>
-            <li><a href="admin_index.html" style="font-weight: bold">数据统计</a></li>
-            <li><a href="admin_population.html">居民管理</a></li>
-            <li><a href="admin_log.html">日志查看</a></li>
-        </ul>
+    <div style="display: flex; justify-content: space-between">
+        <div style="width: 48%">
+            <h2>居民男女比例</h2>
+            <div id="gender-chart" style="height: 400px"></div>
+        </div>
+        <div style="width: 48%">
+            <h2>居民年龄分布</h2>
+            <div id="age-chart" style="height: 400px"></div>
+        </div>
     </div>
-    <div class="main" data-options="region:'center',border:false">
-        <table id="datagrid" class="easyui-datagrid" style="width:100%;height:100%;">
-            <thead>
-                <tr>
-                    <th data-options="field:'name',width:100">姓名</th>
-                    <th data-options="field:'email',width:150">邮箱</th>
-                    <th data-options="field:'phone',width:100">电话</th>
-                </tr>
-            </thead>
-        </table>
-    </div>
+</div>
 </body>
 <script type="text/javascript">
-$(function(){
-    //获取所有用户信息
-    $.get("http://127.0.0.1:8080/users", function(data){
-        //将数据填充到表格中
-        $('#datagrid').datagrid('loadData', data);
+    $(document).ready(function() {
+        const id = new URLSearchParams(window.location.search).get('userId');
+        document.querySelector('#index').href += "?userId="+id;
+        document.querySelector('#population').href += "?userId="+id;
+        document.querySelector('#log').href += "?userId="+id;
+        $.getJSON('http://127.0.0.1:8080/communities/admin/'+id, function(data) {
+            var options = '';
+            $.each(data, function(index, community) {
+                options += '<option value="' + community.communityId + '">' + community.name + '</option>';
+            });
+            $('#community-select').append(options);
+        });
     });
-});
 
+    // 加载数据
+    function loadData() {
+        var community = $('#community-select').val();
+        // 发送Ajax请求，根据社区获取居民数据
+        $.get("http://127.0.0.1:8080/populations/community/" + community, function(data){
+            // 展示居民男女比例的饼图
+            var maleCount = 0; // 计算男性人口数量
+            var femaleCount = 0; // 计算女性人口数量
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].gender === '男') {
+                    maleCount++;
+                } else if (data[i].gender === '女') {
+                    femaleCount++;
+                }
+            }
+            var genderData = [{value: maleCount, name: '男'}, {value: femaleCount, name: '女'}];
+
+            var genderChart = echarts.init(document.getElementById('gender-chart'));
+            genderChart.setOption({
+                title: {text: '居民男女比例'},
+                tooltip: {trigger: 'item', formatter: "{a} <br/>{b}: {c} ({d}%)"},
+                series: [
+                    {
+                        name: '居民男女比例',
+                        type: 'pie',
+                        radius: ['50%', '70%'],
+                        avoidLabelOverlap: false,
+                        label: {show: false, position: 'center'},
+                        emphasis: {label: {show: true, fontSize: '30', fontWeight: 'bold'}},
+                        labelLine: {show: false},
+                        data: genderData // 修改为计算得到的男女比例数组
+                    }
+                ]
+            });
+
+            // 统计年龄段人数
+            var ageMap = {};
+            data.forEach(function(person){
+                var ageRange = Math.floor(person.age / 10) * 10 + ' 岁';
+                ageMap[ageRange] = (ageMap[ageRange] || 0) + 1;
+            });
+
+            // 将 ageMap 转换为可用于 echarts 图表的数据
+            var ageData = Object.keys(ageMap).map(function(ageRange){
+                return {name: ageRange, value: ageMap[ageRange]};
+            });
+
+            // 绘制居民年龄分布柱状图
+            var ageChart = echarts.init(document.getElementById('age-chart'));
+            ageChart.setOption({
+                title: {text: '居民年龄分布'},
+                tooltip: {trigger: 'axis'},
+                xAxis: {type: 'category', data: ageData.map(function(item){return item.name})},
+                yAxis: {type: 'value'},
+                series: [
+                    {
+                        name: '人数',
+                        type: 'bar',
+                        data: ageData
+                    }
+                ]
+            });
+
+        });
+    }
 </script>
 </html>

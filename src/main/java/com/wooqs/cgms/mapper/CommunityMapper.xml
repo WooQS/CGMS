@@ -12,7 +12,11 @@
     </resultMap>
 
     <select id="getById" resultMap="communityResultMap" parameterType="java.lang.Long">
-        SELECT * FROM community WHERE community_id = #{id}
+        SELECT * FROM community WHERE communityId = #{id}
+    </select>
+
+    <select id="getByAdminId" resultMap="communityResultMap" parameterType="java.lang.Long">
+        SELECT * FROM community WHERE adminId = #{AdminId}
     </select>
 
     <select id="getAll" resultMap="communityResultMap">
@@ -20,15 +24,15 @@
     </select>
 
     <insert id="insert" parameterType="com.wooqs.cgms.model.Community" useGeneratedKeys="true" keyProperty="communityId">
-        INSERT INTO community(name, admin_id, address) VALUES(#{name}, #{adminId}, #{address})
+        INSERT INTO community(name, adminId, address) VALUES(#{name}, #{adminId}, #{address})
     </insert>
 
     <update id="update" parameterType="com.wooqs.cgms.model.Community">
-        UPDATE community SET name = #{name}, admin_id = #{adminId}, address = #{address}, update_time = CURRENT_TIMESTAMP(0) WHERE community_id = #{communityId}
+        UPDATE community SET name = #{name}, adminId = #{adminId}, address = #{address}, updateTime = CURRENT_TIMESTAMP(0) WHERE communityId = #{communityId}
     </update>
 
     <delete id="deleteById" parameterType="java.lang.Long">
-        DELETE FROM community WHERE community_id = #{id}
+        DELETE FROM community WHERE communityId = #{id}
     </delete>
 
 </mapper>

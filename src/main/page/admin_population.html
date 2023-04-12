@@ -93,9 +93,9 @@
     </div>
     <div class="sidebar" data-options="region:'west',split:true,border:false">
         <ul>
-            <li><a href="admin_index.html">数据统计</a></li>
-            <li><a href="admin_population.html" style="font-weight: bold">居民管理</a></li>
-            <li><a href="admin_log.html">日志查看</a></li>
+            <li><a id="index" href="admin_index.html">数据统计</a></li>
+            <li><a id="population" href="admin_population.html" style="font-weight: bold">居民管理</a></li>
+            <li><a id="log" href="admin_log.html">日志查看</a></li>
         </ul>
     </div>
     <div class="main" data-options="region:'center',border:false">
@@ -111,13 +111,19 @@
     </div>
 </body>
 <script type="text/javascript">
-$(function(){
-    //获取所有用户信息
-    $.get("http://127.0.0.1:8080/users", function(data){
-        //将数据填充到表格中
-        $('#datagrid').datagrid('loadData', data);
+    $(document).ready(function() {
+        const id = new URLSearchParams(window.location.search).get('userId');
+        document.querySelector('#index').href += "?userId="+id;
+        document.querySelector('#population').href += "?userId="+id;
+        document.querySelector('#log').href += "?userId="+id;
     });
-});
+    $(function(){
+        //获取所有用户信息
+        $.get("http://127.0.0.1:8080/users", function(data){
+            //将数据填充到表格中
+            $('#datagrid').datagrid('loadData', data);
+        });
+    });
 
 </script>
 </html>
