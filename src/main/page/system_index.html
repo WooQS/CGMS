@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>数据统计</title>
+    <!-- 引入EasyUI的jQuery库文件 -->
+    <script type="text/javascript" src="libs/jquery.min.js"></script>
+
+    <!-- 引入EasyUI的EasyUI库文件 -->
+    <script type="text/javascript" src="libs/jquery.easyui.min.js"></script>
+
+    <!-- 引入EasyUI的样式文件 -->
+    <link rel="stylesheet" type="text/css" href="libs/themes/default/easyui.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.2.1/dist/echarts.min.js"></script>
+
+    <style type="text/css">
+
+        /* 调整顶部导航栏样式 */
+        .nav {
+            height: 60px;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        .nav h1 {
+            margin: 0;
+        }
+        .nav ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            display: flex;
+        }
+        .nav li {
+            margin-right: 30px;
+            font-size: 16px;
+        }
+        .nav a {
+            text-decoration: none;
+            color: #333;
+        }
+        .nav a:hover {
+            color: #000;
+        }
+
+        /* 调整侧边栏样式 */
+        .sidebar {
+            width: 200px;
+            background-color: #fafafa;
+            border-right: 1px solid #ccc;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+        }
+        .sidebar ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .sidebar li {
+            margin-top: 25px;
+            margin-left: 50px;
+            font-size: 20px;
+        }
+        .sidebar a {
+            text-decoration: none;
+            color: #333;
+        }
+        .sidebar a:hover {
+            color: #000;
+            font-weight: bold;
+        }
+
+        /* 调整页面主体部分样式 */
+        .main {
+            height: calc(100vh - 60px);
+            margin: 0 auto;
+            width: 80%;
+        }
+
+        .main tr {
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="easyui-layout">
+<div class="nav" data-options="region:'north',border:false">
+    <h1>社区网格管理系统</h1>
+    <ul>
+        <li><a href="login.html">退出</a></li>
+    </ul>
+</div>
+<div class="sidebar" data-options="region:'west',split:true,border:false">
+    <ul>
+        <li><a href="system_index.html" style="font-weight: bold">数据统计</a></li>
+        <li><a href="system_user.html">用户管理</a></li>
+        <li><a href="system_community.html">社区管理</a></li>
+        <li><a href="system_log.html">日志查看</a></li>
+    </ul>
+</div>
+<div class="main" data-options="region:'center',border:false">
+    <div style="margin-bottom: 10px">
+        <label for="community-select">选择社区：</label>
+        <select id="community-select" style="width: 200px">
+            <option value="">选择社区</option>
+        </select>
+        <a href="#" class="easyui-linkbutton" onclick="loadData()">查询</a>
+    </div>
+    <div style="display: flex; justify-content: space-between">
+        <div style="width: 48%">
+            <h2>居民男女比例</h2>
+            <div id="gender-chart" style="height: 400px"></div>
+        </div>
+        <div style="width: 48%">
+            <h2>居民年龄分布</h2>
+            <div id="age-chart" style="height: 400px"></div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+    // 使用Ajax获取社区数据并动态生成下拉选项
+    $.getJSON('http://127.0.0.1:8080/communities', function(data) {
+        var options = '';
+        $.each(data, function(index, community) {
+            options += '<option value="' + community.communityId + '">' + community.name + '</option>';
+        });
+        $('#community-select').append(options);
+    });
+
+    // 加载数据
+    function loadData() {
+        var community = $('#community-select').val();
+        // 发送Ajax请求，根据社区获取居民数据
+        $.get("http://127.0.0.1:8080/populations/community/" + community, function(data){
+            // 展示居民男女比例的饼图
+            var maleCount = 0; // 计算男性人口数量
+            var femaleCount = 0; // 计算女性人口数量
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].gender === '男') {
+                    maleCount++;
+                } else if (data[i].gender === '女') {
+                    femaleCount++;
+                }
+            }
+            var genderData = [{value: maleCount, name: '男'}, {value: femaleCount, name: '女'}];
+
+            var genderChart = echarts.init(document.getElementById('gender-chart'));
+            genderChart.setOption({
+                title: {text: '居民男女比例'},
+                tooltip: {trigger: 'item', formatter: "{a} <br/>{b}: {c} ({d}%)"},
+                series: [
+                    {
+                        name: '居民男女比例',
+                        type: 'pie',
+                        radius: ['50%', '70%'],
+                        avoidLabelOverlap: false,
+                        label: {show: false, position: 'center'},
+                        emphasis: {label: {show: true, fontSize: '30', fontWeight: 'bold'}},
+                        labelLine: {show: false},
+                        data: genderData // 修改为计算得到的男女比例数组
+                    }
+                ]
+            });
+
+            // 统计年龄段人数
+            var ageMap = {};
+            data.forEach(function(person){
+                var ageRange = Math.floor(person.age / 10) * 10 + ' 岁';
+                ageMap[ageRange] = (ageMap[ageRange] || 0) + 1;
+            });
+
+            // 将 ageMap 转换为可用于 echarts 图表的数据
+            var ageData = Object.keys(ageMap).map(function(ageRange){
+                return {name: ageRange, value: ageMap[ageRange]};
+            });
+
+            // 绘制居民年龄分布柱状图
+            var ageChart = echarts.init(document.getElementById('age-chart'));
+            ageChart.setOption({
+                title: {text: '居民年龄分布'},
+                tooltip: {trigger: 'axis'},
+                xAxis: {type: 'category', data: ageData.map(function(item){return item.name})},
+                yAxis: {type: 'value'},
+                series: [
+                    {
+                        name: '人数',
+                        type: 'bar',
+                        data: ageData
+                    }
+                ]
+            });
+
+        });
+    }
+</script>
+</html>
