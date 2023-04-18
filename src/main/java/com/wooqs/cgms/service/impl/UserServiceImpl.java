@@ -31,6 +31,12 @@ public class UserServiceImpl implements UserService {
         return userMapper.getByUsername(username);
     }
 
+    // 根据用户名获取用户信息
+    @Override
+    public List<User> search(String username) {
+        return userMapper.search(username);
+    }
+
     // 获取所有用户信息
     @Override
     public List<User> getAll() {

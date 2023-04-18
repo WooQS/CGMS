@@ -24,8 +24,8 @@ public class LogServiceImpl implements LogService {
     }
     //根据ID获取日志信息
     @Override
-    public Log getLogById(Long id) {
-        return logMapper.getById(id);
+    public List<Log> getLogByUserId(Long id) {
+        return logMapper.getByUserId(id);
     }
     //添加日志信息
     @Override

@@ -2,12 +2,14 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>数据统计</title>
+    <title>社区网格管理系统</title>
     <!-- 引入EasyUI的jQuery库文件 -->
     <script type="text/javascript" src="libs/jquery.min.js"></script>
 
     <!-- 引入EasyUI的EasyUI库文件 -->
     <script type="text/javascript" src="libs/jquery.easyui.min.js"></script>
+
+    <script type="text/javascript" src="js/datagrid-export.js"></script>
 
     <!-- 引入EasyUI的样式文件 -->
     <link rel="stylesheet" type="text/css" href="libs/themes/default/easyui.css">
@@ -98,30 +100,52 @@
             <li><a id="log" href="admin_log.html" style="font-weight: bold">日志查看</a></li>
         </ul>
     </div>
-    <div class="main" data-options="region:'center',border:false">
-        <table id="datagrid" class="easyui-datagrid" style="width:100%;height:100%;">
-            <thead>
-                <tr>
-                    <th data-options="field:'name',width:100">姓名</th>
-                    <th data-options="field:'email',width:150">邮箱</th>
-                    <th data-options="field:'phone',width:100">电话</th>
-                </tr>
-            </thead>
-        </table>
+    <div class="main" data-options="region:'center',split:true,border:false">
+        <!-- 操作栏，包含导出excel按钮  -->
+        <div class="datagrid-toolbar">
+            <a href="#" class="easyui-linkbutton" data-options="
+                iconCls: 'icon-excel',
+                plain: true,
+                onClick : exportExcel
+            ">导出Excel</a>
+        </div>
+
+        <!-- 日志列表 -->
+        <div style="height: 95%">
+            <table id="log-table" class="easyui-datagrid">
+            </table>
+        </div>
     </div>
 </body>
 <script type="text/javascript">
-    $(document).ready(function() {
+    // 导出excel
+    function exportExcel() {
+        $('#log-table').datagrid('toExcel','dg.xls');
+    }
+
+    $(function () {
         const id = new URLSearchParams(window.location.search).get('userId');
         document.querySelector('#index').href += "?userId="+id;
         document.querySelector('#population').href += "?userId="+id;
         document.querySelector('#log').href += "?userId="+id;
-    });
-    $(function(){
-        //获取所有用户信息
-        $.get("http://127.0.0.1:8080/users", function(data){
-            //将数据填充到表格中
-            $('#datagrid').datagrid('loadData', data);
+        // 初始化日志表格
+        $('#log-table').datagrid({
+            url: 'http://127.0.0.1:8080/logs/'+id,
+            method: 'get',
+            fit: true,
+            fitColumns: true,
+            striped: true,
+            rownumbers: true,
+            pagination: true,
+            pageSize: 20,
+            pageList: [10, 20, 30, 40, 50],
+            toolbar: '#log-toolbar',
+            columns: [[
+                { field: 'userId', title: '操作用户ID', width: 100 },
+                { field: 'type', title: '类型', width: 100 },
+                { field: 'time', title: '时间', width: 100 },
+                { field: 'description', title: '详情', width: 150 }
+            ]]
         });
     });
 

@@ -19,6 +19,10 @@
         SELECT * FROM community WHERE adminId = #{AdminId}
     </select>
 
+    <select id="search" resultMap="communityResultMap" parameterType="java.lang.Long">
+        SELECT * FROM community WHERE name REGEXP #{name}
+    </select>
+
     <select id="getAll" resultMap="communityResultMap">
         SELECT * FROM community
     </select>

@@ -11,6 +11,9 @@ public interface PopulationService {
     Population getPopulationById(Long id);
     // 根据社区ID获取人口信息
     List<Population> getPopulationByCommunityId(Long id);
+
+    // 根据姓名获取人口信息
+    List<Population> search(String name, Long communityId);
     // 添加人口信息
     void addPopulation(Population population);
     // 更新人口信息

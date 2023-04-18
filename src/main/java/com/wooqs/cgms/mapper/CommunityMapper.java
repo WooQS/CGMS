@@ -13,6 +13,9 @@ public interface CommunityMapper {
     @Select("SELECT * FROM community WHERE adminId = #{AdminId}")
     List<Community> getByAdminId(@Param("AdminId") Long AdminId);
 
+    @Select("SELECT * FROM community WHERE name REGEXP #{name}")
+    List<Community> search(@Param("name") String name);
+
     @Select("SELECT * FROM community")
     List<Community> getAll();
 

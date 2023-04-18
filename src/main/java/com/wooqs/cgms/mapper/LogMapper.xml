@@ -10,8 +10,8 @@
         <result property="description" column="description" />
     </resultMap>
 
-    <select id="getById" resultMap="logResultMap" parameterType="java.lang.Long">
-        SELECT * FROM log WHERE log_id = #{id}
+    <select id="getByUserId" resultMap="logResultMap" parameterType="java.lang.Long">
+        SELECT * FROM log WHERE userId REGEXP #{id}
     </select>
 
     <select id="getAll" resultMap="logResultMap">
@@ -19,7 +19,7 @@
     </select>
 
     <insert id="insert" parameterType="com.wooqs.cgms.model.Log">
-        INSERT INTO log(user_id, type, description)
+        INSERT INTO log(userId, type, description)
         VALUES(#{userId}, #{type}, #{description})
         <selectKey keyProperty="logId" order="AFTER" resultType="java.lang.Long">
             SELECT LAST_INSERT_ID()
@@ -27,7 +27,7 @@
     </insert>
 
     <delete id="deleteById" parameterType="java.lang.Long">
-        DELETE FROM log WHERE log_id = #{id}
+        DELETE FROM log WHERE logId = #{id}
     </delete>
 
 </mapper>

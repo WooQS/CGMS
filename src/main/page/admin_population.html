@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
-    <title>数据统计</title>
+    <title>社区网格管理系统</title>
     <!-- 引入EasyUI的jQuery库文件 -->
     <script type="text/javascript" src="libs/jquery.min.js"></script>
 
     <!-- 引入EasyUI的EasyUI库文件 -->
     <script type="text/javascript" src="libs/jquery.easyui.min.js"></script>
 
+    <script type="text/javascript" src="js/datagrid-export.js"></script>
+
     <!-- 引入EasyUI的样式文件 -->
     <link rel="stylesheet" type="text/css" href="libs/themes/default/easyui.css">
 
     <style type="text/css">
-
         /* 调整顶部导航栏样式 */
         .nav {
             height: 60px;
@@ -24,23 +26,28 @@
             align-items: center;
             padding: 0 20px;
         }
+
         .nav h1 {
             margin: 0;
         }
+
         .nav ul {
             margin: 0;
             padding: 0;
             list-style: none;
             display: flex;
         }
+
         .nav li {
             margin-right: 30px;
             font-size: 16px;
         }
+
         .nav a {
             text-decoration: none;
             color: #333;
         }
+
         .nav a:hover {
             color: #000;
         }
@@ -53,20 +60,24 @@
             height: calc(100vh - 60px);
             overflow-y: auto;
         }
+
         .sidebar ul {
             margin: 0;
             padding: 0;
             list-style: none;
         }
+
         .sidebar li {
             margin-top: 25px;
             margin-left: 50px;
             font-size: 20px;
         }
+
         .sidebar a {
             text-decoration: none;
             color: #333;
         }
+
         .sidebar a:hover {
             color: #000;
             font-weight: bold;
@@ -79,36 +90,186 @@
             width: 80%;
         }
 
-        .main tr {
-            margin: 0;
+        .action-bar {
+            margin-bottom: 10px;
+        }
+
+        .easyui-searchbox {
+            width: 250px;
+            margin-right: 10px;
+        }
+
+        .easyui-linkbutton {
+            margin-right: 10px;
+        }
+
+        #population-table {
+            width: 100%;
+            height: 90px;
+        }
+
+        #population-modal {
+            width: 400px;
+            height: 300px;
+        }
+
+        .fitem {
+            margin-bottom: 10px;
+        }
+
+        .fitem label {
+            display: inline-block;
+            width: 80px;
+        }
+
+        .fitem input,
+        .fitem select {
+            width: 200px;
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .fitem input:focus,
+        .fitem select:focus {
+            border-color: #8cc2ff;
+            box-shadow: 0 0 2px #8cc2ff;
+        }
+
+        .fitem .validatebox-invalid {
+            border-color: #f00;
+            box-shadow: 0 0 2px #f00;
+        }
+
+        .fitem .validatebox-invalid:focus {
+            border-color: #f00;
+            box-shadow: 0 0 2px #f00;
+        }
+
+        .easyui-dialog {
+            padding: 10px;
         }
     </style>
 </head>
+
 <body class="easyui-layout">
-    <div class="nav" data-options="region:'north',border:false">
-        <h1>社区网格管理系统</h1>
-        <ul>
-            <li><a href="login.html">退出</a></li>
-        </ul>
+<div class="nav" data-options="region:'north',border:false">
+    <h1>社区网格管理系统</h1>
+    <ul>
+        <li><a href="login.html">退出</a></li>
+    </ul>
+</div>
+<div class="sidebar" data-options="region:'west',split:true,border:false">
+    <ul>
+        <li><a id="index" href="admin_index.html">数据统计</a></li>
+        <li><a id="population" href="admin_population.html" style="font-weight: bold">居民管理</a></li>
+        <li><a id="log" href="admin_log.html">日志查看</a></li>
+    </ul>
+</div>
+<div class="main" data-options="region:'center',split:true,border:false">
+    <!-- 操作栏，包含搜索框、添加居民按钮和导出excel按钮  -->
+    <div class="datagrid-toolbar">
+        <label for="community-select">选择社区：</label>
+        <select id="community-select" style="width: 200px">
+        </select>
+        <a href="#" class="easyui-linkbutton" onclick="loadData()">查询</a>
+        <input type="text" placeholder="搜索居民" class="easyui-searchbox" data-options="
+                prompt:'请输入居民名称',
+                searcher: searchPopulation
+            " />
+        <a href="#" class="easyui-linkbutton" data-options="
+                iconCls: 'icon-add',
+                plain: true,
+                onClick: openAddPopulationDialog
+            ">添加居民</a>
+        <a href="#" class="easyui-linkbutton" data-options="
+                iconCls: 'icon-excel',
+                plain: true,
+                onClick : exportExcel
+            ">导出Excel</a>
     </div>
-    <div class="sidebar" data-options="region:'west',split:true,border:false">
-        <ul>
-            <li><a id="index" href="admin_index.html">数据统计</a></li>
-            <li><a id="population" href="admin_population.html" style="font-weight: bold">居民管理</a></li>
-            <li><a id="log" href="admin_log.html">日志查看</a></li>
-        </ul>
-    </div>
-    <div class="main" data-options="region:'center',border:false">
-        <table id="datagrid" class="easyui-datagrid" style="width:100%;height:100%;">
-            <thead>
-                <tr>
-                    <th data-options="field:'name',width:100">姓名</th>
-                    <th data-options="field:'email',width:150">邮箱</th>
-                    <th data-options="field:'phone',width:100">电话</th>
-                </tr>
-            </thead>
+
+    <!-- 居民列表 -->
+    <div style="height: 95%">
+        <table id="population-table" class="easyui-datagrid" data-options="
+                fitColumns: true,
+                singleSelect: true,
+                url: 'http://127.0.0.1:8080/populations',
+                pagination: true,
+                pageList: [10, 20, 30, 50],
+                pageSize: 10,
+                onLoadSuccess: function(data){
+                    // 设置操作列中按钮的样式
+                    $('.edit-population-btn').linkbutton({
+                        iconCls: 'icon-edit',
+                        plain: true
+                    });
+                    $('.delete-population-btn').linkbutton({
+                        iconCls: 'icon-remove',
+                        plain: true
+                    });
+                }
+            ">
         </table>
     </div>
+
+
+    <!-- 弹出框，用于添加或编辑居民 -->
+    <div id="population-modal" class="easyui-dialog" data-options="
+                title: '添加居民',
+                modal: true,
+                closed: true,
+                buttons: [{
+                    text: '保存',
+                    iconCls: 'icon-save',
+                    handler: savePopulation
+                },{
+                    text: '取消',
+                    iconCls: 'icon-cancel',
+                    handler: function(){
+                        $('#population-form').form('reset');
+                        $('#population-modal').dialog('close');
+                    }
+                }]
+            ">
+        <form id="population-form" class="easyui-form">
+            <div class="fitem">
+                <label for="name">姓名：</label>
+                <input type="text" id="name" name="name" class="easyui-validatebox" required="true"
+                       validType="length[2,30]" />
+            </div>
+            <div class="fitem">
+                <label for="gender">性别：</label>
+                <select id="gender" name="gender" class="easyui-combobox" required="true">
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                </select>
+            </div>
+            <div class="fitem">
+                <label for="age">年龄：</label>
+                <input type="text" id="age" name="age" class="easyui-validatebox" required="true"
+                       validType="length[2,30]" />
+            </div>
+            <div class="fitem">
+                <label for="job">职业：</label>
+                <input type="text" id="job" name="job" class="easyui-validatebox"/>
+            </div>
+            <div class="fitem">
+                <label for="idCard">证件号：</label>
+                <input type="text" id="idCard" name="idCard" class="easyui-validatebox" required="true" />
+            </div>
+            <div class="fitem">
+                <label for="hometown">家乡：</label>
+                <input type="text" id="hometown" name="hometown" class="easyui-validatebox"/>
+            </div>
+            <div class="fitem">
+                <label for="address">地址：</label>
+                <input type="text" id="address" name="address" class="easyui-validatebox"/>
+            </div>
+
+        </form>
+    </div>
+</div>
 </body>
 <script type="text/javascript">
     $(document).ready(function() {
@@ -116,14 +277,290 @@
         document.querySelector('#index').href += "?userId="+id;
         document.querySelector('#population').href += "?userId="+id;
         document.querySelector('#log').href += "?userId="+id;
-    });
-    $(function(){
-        //获取所有用户信息
-        $.get("http://127.0.0.1:8080/users", function(data){
-            //将数据填充到表格中
-            $('#datagrid').datagrid('loadData', data);
+        $.getJSON('http://127.0.0.1:8080/communities/admin/'+id, function(data) {
+            var options = '';
+            $.each(data, function(index, community) {
+                options += '<option value="' + community.communityId + '">' + community.name + '</option>';
+            });
+            $('#community-select').append(options);
+            loadData();
         });
     });
+    // 添加居民弹出框
+    var addPopulationDialog;
 
+    // 打开添加居民弹出框
+    function openAddPopulationDialog() {
+        $('#population').form('clear');
+        addPopulationDialog.dialog('setTitle', '添加居民');
+        addPopulationDialog.dialog('open');
+    }
+
+    // 编辑居民弹出框
+    var editPopulationDialog;
+
+    // 打开编辑居民弹出框
+    function openEditPopulationDialog(id) {
+        $('#population-form').form('clear');
+        $.ajax({
+            url: 'http://127.0.0.1:8080/populations/id/'+id,
+            type: 'get',
+            dataType: 'json',
+            statusCode:{
+                200 :function (data) {
+                    $('#population-form').form('load', data);
+                    editPopulationDialog.dialog({
+                        title: "编辑居民",
+                        modal: true,
+                        width: 500,
+                        height: 400,
+                        buttons: [{
+                            text: '更新',
+                            iconCls: 'icon-save',
+                            handler: function () {
+                                updatePopulation(id);
+                            }
+                        }, {
+                            text: '取消',
+                            iconCls: 'icon-cancel',
+                            handler: function () {
+                                addPopulationDialog.dialog('close');
+                                editPopulationDialog.dialog('close');
+                            }
+                        }]
+                    });
+                    editPopulationDialog.dialog('open');
+                }
+            }
+        });
+    }
+
+    // 保存居民
+    function savePopulation() {
+        var isValid = $('#population-form').form('validate');
+        if (!isValid) {
+            return;
+        }
+        var population = serializeForm($('#population-form').serializeArray());
+        console.log(population);
+        $.ajax({
+            url: 'http://localhost:8080/populations',
+            data: JSON.stringify(population),
+            type: 'post',
+            contentType: "application/json;charset=UTF-8",
+            dataType: 'json',
+            statusCode:{
+                200 :function () {
+                    addLog("添加","居民姓名："+population.name);
+                    $.messager.show({
+                        title: '成功',
+                        msg: '保存成功'
+                    });
+                    addPopulationDialog.dialog('close');
+                    editPopulationDialog.dialog('close');
+                    loadData();
+                },
+                400 :function () {
+                    $.messager.show({
+                        title: '失败',
+                        msg: '存在证件号相同的用户'
+                    });
+                }
+            }
+        });
+    }
+
+    // 更新居民
+    function updatePopulation(id) {
+        var isValid = $('#population-form').form('validate');
+        if (!isValid) {
+            return;
+        }
+        var population = serializeForm($('#population-form').serializeArray());
+        $.ajax({
+            url: 'http://localhost:8080/populations/update/'+id,
+            data: JSON.stringify(population),
+            type: 'put',
+            contentType: "application/json;charset=UTF-8",
+            dataType: 'json',
+            statusCode:{
+                200 :function () {
+                    addLog("修改","居民姓名："+population.name);
+                    $.messager.show({
+                        title: '成功',
+                        msg: '更新成功'
+                    });
+                    addPopulationDialog.dialog('close');
+                    editPopulationDialog.dialog('close');
+                    $('#population-table').datagrid('reload');
+                },
+                400 :function () {
+                    $.messager.show({
+                        title: '失败',
+                        msg: '存在证件号相同的用户'
+                    });
+                }
+            }
+        });
+    }
+
+    // 删除居民
+    function deletePopulation(id) {
+        $.messager.confirm('确认', '您确认要删除该居民吗？', function (r) {
+            if (r) {
+                $.ajax({
+                    url: 'http://localhost:8080/populations/' + id,
+                    type: 'delete',
+                    dataType: 'json',
+                    success: function () {
+                            addLog("删除","居民ID："+id);
+                            $.messager.show({
+                                title: '成功',
+                                msg: '删除成功'
+                            });
+                            loadData();
+                    }
+                });
+            }
+        });
+    }
+
+    // 搜索居民
+    function searchPopulation(value) {
+        $('#population-table').datagrid({
+            url: 'http://127.0.0.1:8080/populations/' + value + '&' + $('#community-select').val(),
+            method: 'get',
+            fit: true,
+            fitColumns: true,
+            striped: true,
+            rownumbers: true,
+            rowIndex: 'populationId',
+            pagination: true,
+            pageSize: 20,
+            pageList: [10, 20, 30, 40, 50],
+            toolbar: '#population-toolbar',
+            columns: [[
+                { field: 'name', title: '姓名', width: 150 },
+                { field: 'gender', title: '性别', width: 100 },
+                { field: 'age', title: '年龄', width: 100 },
+                { field: 'job', title: '职业', width: 100 },
+                { field: 'idCard', title: '证件号', width: 200 },
+                { field: 'hometown', title: '家乡', width: 200 },
+                { field: 'address', title: '住址', width: 200 },
+                { field: 'action', title: '操作', width: 150, formatter: actionFormatter }
+            ]]
+        });
+        addLog("查询","居民关键词："+value);
+    }
+
+    function addLog(type,value){
+        const id = new URLSearchParams(window.location.search).get('userId');
+        var log = '{"userId":"'+id+'","type":"'+type+'","description":"'+value+'"}"';
+        console.log(log);
+        $.ajax({
+            url: 'http://localhost:8080/logs',
+            data: log,
+            type: 'post',
+            contentType: "application/json;charset=UTF-8",
+            dataType: 'json',
+        });
+    }
+
+    // 导出excel
+    function exportExcel() {
+        $('#population-table').datagrid('toExcel','dg.xls');
+    }
+
+    // 操作列格式化函数
+    function actionFormatter(value, row, index) {
+        var id = row.populationId;
+        var html = '<a href="#" class="edit-population-btn" onclick="openEditPopulationDialog(' + id + ')">编辑</a>';
+        html += '&nbsp;&nbsp;&nbsp;';
+        html += '<a href="#" class="delete-population-btn" onclick="deletePopulation(' + id + ')">删除</a>';
+        return html;
+    }
+
+    function serializeForm(form){
+        var obj = {};
+        $.each(form,function(){
+            if(obj[this['name']]){
+                obj[this['name']] = obj[this['name']] + ','+this['value'];
+            } else {
+                obj[this['name']] =this['value'];
+            }
+        });
+        obj['communityId'] = $('#community-select').val();
+        return obj;
+    }
+
+    function loadData() {
+        var community = $('#community-select').val();
+        // 发送Ajax请求，根据社区获取居民数据
+        $('#population-table').datagrid({
+            url: 'http://127.0.0.1:8080/populations/community/' +  community,
+            method: 'get',
+            fit: true,
+            fitColumns: true,
+            striped: true,
+            rownumbers: true,
+            pagination: true,
+            pageSize: 20,
+            pageList: [10, 20, 30, 40, 50],
+            toolbar: '#user-toolbar',
+            columns: [[
+                { field: 'name', title: '姓名', width: 150 },
+                { field: 'gender', title: '性别', width: 100 },
+                { field: 'age', title: '年龄', width: 100 },
+                { field: 'job', title: '职业', width: 100 },
+                { field: 'idCard', title: '证件号', width: 200 },
+                { field: 'hometown', title: '家乡', width: 200 },
+                { field: 'address', title: '住址', width: 200 },
+                { field: 'action', title: '操作', width: 150, formatter: actionFormatter }
+            ]]
+        });
+    }
+
+    $(function () {
+        // 初始化添加居民弹出框
+        addPopulationDialog = $('#population-modal').dialog({
+            closed: true,
+            modal: true,
+            width: 500,
+            height: 400,
+            buttons: [{
+                text: '保存',
+                iconCls: 'icon-save',
+                handler: savePopulation
+            }, {
+                text: '取消',
+                iconCls: 'icon-cancel',
+                handler: function () {
+                    addPopulationDialog.dialog('close');
+                    editPopulationDialog.dialog('close');
+                }
+            }]
+        });
+
+        // 初始化编辑居民弹出框
+        editPopulationDialog = $('#population-modal').dialog({
+            closed: true,
+            modal: true,
+            width: 500,
+            height: 400,
+            buttons: [{
+                text: '保存',
+                iconCls: 'icon-save',
+                handler: savePopulation
+            }, {
+                text: '取消',
+                iconCls: 'icon-cancel',
+                handler: function () {
+                    addPopulationDialog.dialog('close');
+                    editPopulationDialog.dialog('close');
+                }
+            }]
+        });
+    });
 </script>
+
 </html>

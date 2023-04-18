@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
-    <title>数据统计</title>
+    <title>社区网格管理系统</title>
     <!-- 引入EasyUI的jQuery库文件 -->
     <script type="text/javascript" src="libs/jquery.min.js"></script>
 
     <!-- 引入EasyUI的EasyUI库文件 -->
     <script type="text/javascript" src="libs/jquery.easyui.min.js"></script>
 
+    <script type="text/javascript" src="js/datagrid-export.js"></script>
+
     <!-- 引入EasyUI的样式文件 -->
     <link rel="stylesheet" type="text/css" href="libs/themes/default/easyui.css">
 
     <style type="text/css">
-
         /* 调整顶部导航栏样式 */
         .nav {
             height: 60px;
@@ -24,23 +26,28 @@
             align-items: center;
             padding: 0 20px;
         }
+
         .nav h1 {
             margin: 0;
         }
+
         .nav ul {
             margin: 0;
             padding: 0;
             list-style: none;
             display: flex;
         }
+
         .nav li {
             margin-right: 30px;
             font-size: 16px;
         }
+
         .nav a {
             text-decoration: none;
             color: #333;
         }
+
         .nav a:hover {
             color: #000;
         }
@@ -53,20 +60,24 @@
             height: calc(100vh - 60px);
             overflow-y: auto;
         }
+
         .sidebar ul {
             margin: 0;
             padding: 0;
             list-style: none;
         }
+
         .sidebar li {
             margin-top: 25px;
             margin-left: 50px;
             font-size: 20px;
         }
+
         .sidebar a {
             text-decoration: none;
             color: #333;
         }
+
         .sidebar a:hover {
             color: #000;
             font-weight: bold;
@@ -79,46 +90,446 @@
             width: 80%;
         }
 
-        .main tr {
-            margin: 0;
+        .action-bar {
+            margin-bottom: 10px;
+        }
+
+        .easyui-searchbox {
+            width: 250px;
+            margin-right: 10px;
+        }
+
+        .easyui-linkbutton {
+            margin-right: 10px;
+        }
+
+        #community-table {
+            width: 100%;
+            height: 90px;
+        }
+
+        #community-modal {
+            width: 400px;
+            height: 300px;
+        }
+
+        .fitem {
+            margin-bottom: 10px;
+        }
+
+        .fitem label {
+            display: inline-block;
+            width: 80px;
+        }
+
+        .fitem input,
+        .fitem select {
+            width: 200px;
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .fitem input:focus,
+        .fitem select:focus {
+            border-color: #8cc2ff;
+            box-shadow: 0 0 2px #8cc2ff;
+        }
+
+        .fitem .validatebox-invalid {
+            border-color: #f00;
+            box-shadow: 0 0 2px #f00;
+        }
+
+        .fitem .validatebox-invalid:focus {
+            border-color: #f00;
+            box-shadow: 0 0 2px #f00;
+        }
+
+        .easyui-dialog {
+            padding: 10px;
         }
     </style>
 </head>
+
 <body class="easyui-layout">
-    <div class="nav" data-options="region:'north',border:false">
-        <h1>社区网格管理系统</h1>
-        <ul>
-            <li><a href="login.html">退出</a></li>
-        </ul>
+<div class="nav" data-options="region:'north',border:false">
+    <h1>社区网格管理系统</h1>
+    <ul>
+        <li><a href="login.html">退出</a></li>
+    </ul>
+</div>
+<div class="sidebar" data-options="region:'west',split:true,border:false">
+    <ul>
+        <li><a id="index" href="system_index.html">数据统计</a></li>
+        <li><a id="user" href="system_user.html">用户管理</a></li>
+        <li><a id="community" href="system_community.html" style="font-weight: bold">社区管理</a></li>
+        <li><a id="log" href="system_log.html">日志查看</a></li>
+    </ul>
+</div>
+<div class="main" data-options="region:'center',split:true,border:false">
+    <!-- 操作栏，包含搜索框、添加社区按钮和导出excel按钮  -->
+    <div class="datagrid-toolbar">
+        <input type="text" placeholder="搜索社区" class="easyui-searchbox" data-options="
+                prompt:'请输入社区名称',
+                searcher: searchCommunity
+            " />
+        <a href="#" class="easyui-linkbutton" data-options="
+                iconCls: 'icon-add',
+                plain: true,
+                onClick: openAddCommunityDialog
+            ">添加社区</a>
+        <a href="#" class="easyui-linkbutton" data-options="
+                iconCls: 'icon-excel',
+                plain: true,
+                onClick : exportExcel
+            ">导出Excel</a>
     </div>
-    <div class="sidebar" data-options="region:'west',split:true,border:false">
-        <ul>
-            <li><a href="system_index.html">数据统计</a></li>
-            <li><a href="system_user.html">用户管理</a></li>
-            <li><a href="system_community.html" style="font-weight: bold">社区管理</a></li>
-            <li><a href="system_log.html">日志查看</a></li>
-        </ul>
-    </div>
-    <div class="main" data-options="region:'center',border:false">
-        <table id="datagrid" class="easyui-datagrid" style="width:100%;height:100%;">
-            <thead>
-                <tr>
-                    <th data-options="field:'name',width:100">姓名</th>
-                    <th data-options="field:'email',width:150">邮箱</th>
-                    <th data-options="field:'phone',width:100">电话</th>
-                </tr>
-            </thead>
+
+    <!-- 社区列表 -->
+    <div style="height: 95%">
+        <table id="community-table" class="easyui-datagrid" data-options="
+                fitColumns: true,
+                singleSelect: true,
+                url: 'http://127.0.0.1:8080/communities',
+                pagination: true,
+                pageList: [10, 20, 30, 50],
+                pageSize: 10,
+                onLoadSuccess: function(data){
+                    // 设置操作列中按钮的样式
+                    $('.edit-community-btn').linkbutton({
+                        iconCls: 'icon-edit',
+                        plain: true
+                    });
+                    $('.delete-community-btn').linkbutton({
+                        iconCls: 'icon-remove',
+                        plain: true
+                    });
+                }
+            ">
         </table>
     </div>
+
+
+    <!-- 弹出框，用于添加或编辑社区 -->
+    <div id="community-modal" class="easyui-dialog" data-options="
+                title: '添加社区',
+                modal: true,
+                closed: true,
+                buttons: [{
+                    text: '保存',
+                    iconCls: 'icon-save',
+                    handler: saveCommunity
+                },{
+                    text: '取消',
+                    iconCls: 'icon-cancel',
+                    handler: function(){
+                        $('#community-form').form('reset');
+                        $('#community-modal').dialog('close');
+                    }
+                }]
+            ">
+        <form id="community-form" class="easyui-form">
+            <div class="fitem">
+                <label for="name">社区名称：</label>
+                <input type="text" id="name" name="name" class="easyui-validatebox" required="true"
+                       validType="length[3,30]" />
+            </div>
+            <div class="fitem">
+                <label for="adminId">管理员ID：</label>
+                <input type="text" id="adminId" name="adminId" class="easyui-validatebox" required="true"
+                       />
+            </div>
+            <div class="fitem">
+                <label for="address">地址：</label>
+                <input type="text" id="address" name="address" class="easyui-validatebox" required="true"
+                       validType="length[2,30]" />
+            </div>
+        </form>
+    </div>
+</div>
 </body>
 <script type="text/javascript">
-$(function(){
-    //获取所有用户信息
-    $.get("http://127.0.0.1:8080/users", function(data){
-        //将数据填充到表格中
-        $('#datagrid').datagrid('loadData', data);
-    });
-});
+    // 添加社区弹出框
+    var addCommunityDialog;
 
+    // 打开添加社区弹出框
+    function openAddCommunityDialog() {
+        $('#community-form').form('clear');
+        addCommunityDialog.dialog('setTitle', '添加社区');
+        addCommunityDialog.dialog('open');
+    }
+
+    // 编辑社区弹出框
+    var editCommunityDialog;
+
+    // 打开编辑社区弹出框
+    function openEditCommunityDialog(id) {
+        $('#community-form').form('clear');
+        $.ajax({
+            url: 'http://127.0.0.1:8080/communities/id/'+id,
+            type: 'get',
+            dataType: 'json',
+            statusCode:{
+                200 :function (data) {
+                    $('#community-form').form('load', data);
+                    editCommunityDialog.dialog({
+                        title: "编辑社区",
+                        modal: true,
+                        width: 500,
+                        height: 400,
+                        buttons: [{
+                            text: '更新',
+                            iconCls: 'icon-save',
+                            handler: function () {
+                                updateCommunity(id);
+                            }
+                        }, {
+                            text: '取消',
+                            iconCls: 'icon-cancel',
+                            handler: function () {
+                                addCommunityDialog.dialog('close');
+                                editCommunityDialog.dialog('close');
+                            }
+                        }]
+                    });
+                    editCommunityDialog.dialog('open');
+                }
+            }
+        });
+    }
+
+    // 保存社区
+    function saveCommunity() {
+        var isValid = $('#community-form').form('validate');
+        if (!isValid) {
+            return;
+        }
+        var community = serializeForm($('#community-form').serializeArray());
+        $.ajax({
+            url: 'http://localhost:8080/communities',
+            data: JSON.stringify(community),
+            type: 'post',
+            contentType: "application/json;charset=UTF-8",
+            dataType: 'json',
+            statusCode:{
+                200 :function () {
+                    addLog("添加","社区名："+community.name);
+                    $.messager.show({
+                        title: '成功',
+                        msg: '保存成功'
+                    });
+                    addCommunityDialog.dialog('close');
+                    editCommunityDialog.dialog('close');
+                    $('#community-table').datagrid('reload');
+                },
+                400 :function () {
+                    $.messager.show({
+                        title: '失败',
+                        msg: '管理员ID不存在'
+                    });
+                }
+            }
+        });
+    }
+
+    // 更新社区
+    function updateCommunity(id) {
+        var isValid = $('#community-form').form('validate');
+        if (!isValid) {
+            return;
+        }
+        var community = serializeForm($('#community-form').serializeArray());
+        $.ajax({
+            url: 'http://localhost:8080/communities/update/'+id,
+            data: JSON.stringify(community),
+            type: 'put',
+            contentType: "application/json;charset=UTF-8",
+            dataType: 'json',
+            statusCode:{
+                200 :function () {
+                    addLog("修改","社区名："+community.name);
+                    $.messager.show({
+                        title: '成功',
+                        msg: '更新成功'
+                    });
+                    addCommunityDialog.dialog('close');
+                    editCommunityDialog.dialog('close');
+                    $('#community-table').datagrid('reload');
+                },
+                400 :function () {
+                    $.messager.show({
+                        title: '失败',
+                        msg: '管理员ID不存在'
+                    });
+                }
+            }
+        });
+    }
+
+    // 删除社区
+    function deleteCommunity(id) {
+        $.messager.confirm('确认', '您确认要删除该社区吗？', function (r) {
+            if (r) {
+                $.ajax({
+                    url: 'http://localhost:8080/communities/'+id,
+                    type: 'delete',
+                    dataType: 'json',
+                    statusCode:{
+                        200 :function () {
+                            addLog("删除","社区ID："+id);
+                            $.messager.show({
+                                title: '成功',
+                                msg: '删除成功'
+                            });
+                            $('#community-table').datagrid('reload');
+                        },
+                        400 :function () {
+                            $.messager.show({
+                                title: '失败',
+                                msg: '该社区还存在居民信息'
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    // 搜索社区
+    function searchCommunity(value) {
+        $('#community-table').datagrid({
+            url: 'http://127.0.0.1:8080/communities/' + value,
+            method: 'get',
+            fit: true,
+            fitColumns: true,
+            striped: true,
+            rownumbers: true,
+            rowIndex: 'communityId',
+            pagination: true,
+            pageSize: 20,
+            pageList: [10, 20, 30, 40, 50],
+            toolbar: '#log-toolbar',
+            columns: [[
+                { field: 'name', title: '社区名称', width: 100 },
+                { field: 'adminId', title: '管理员ID', width: 150 },
+                { field: 'address', title: '地址', width: 100 },
+                { field: 'createTime', title: '创建时间', width: 150 },
+                { field: 'updateTime', title: '最近更新时间', width: 150 },
+                { field: 'action', title: '操作', width: 150, formatter: actionFormatter }
+            ]]
+        });
+        addLog("查询","社区关键词："+value);
+    }
+
+    function addLog(type,value){
+        const id = new URLSearchParams(window.location.search).get('userId');
+        var log = '{"userId":"'+id+'","type":"'+type+'","description":"'+value+'"}"';
+        console.log(log);
+        $.ajax({
+            url: 'http://localhost:8080/logs',
+            data: log,
+            type: 'post',
+            contentType: "application/json;charset=UTF-8",
+            dataType: 'json',
+        });
+    }
+
+    // 导出excel
+    function exportExcel() {
+        $('#community-table').datagrid('toExcel','dg.xls');
+    }
+
+    // 操作列格式化函数
+    function actionFormatter(value, row, index) {
+        var id = row.communityId;
+        var html = '<a href="#" class="edit-community-btn" onclick="openEditCommunityDialog(' + id + ')">编辑</a>';
+        html += '&nbsp;&nbsp;&nbsp;';
+        html += '<a href="#" class="delete-community-btn" onclick="deleteCommunity(' + id + ')">删除</a>';
+        return html;
+    }
+
+    function serializeForm(form){
+        var obj = {};
+        $.each(form,function(){
+            if(obj[this['name']]){
+                obj[this['name']] = obj[this['name']] + ','+this['value'];
+            } else {
+                obj[this['name']] =this['value'];
+            }
+        });
+        return obj;
+    }
+
+    $(function () {
+        // 初始化添加社区弹出框
+        addCommunityDialog = $('#community-modal').dialog({
+            closed: true,
+            modal: true,
+            width: 500,
+            height: 400,
+            buttons: [{
+                text: '保存',
+                iconCls: 'icon-save',
+                handler: saveCommunity
+            }, {
+                text: '取消',
+                iconCls: 'icon-cancel',
+                handler: function () {
+                    addCommunityDialog.dialog('close');
+                    editCommunityDialog.dialog('close');
+                }
+            }]
+        });
+
+        // 初始化编辑社区弹出框
+        editCommunityDialog = $('#community-modal').dialog({
+            closed: true,
+            modal: true,
+            width: 500,
+            height: 400,
+            buttons: [{
+                text: '保存',
+                iconCls: 'icon-save',
+                handler: saveCommunity
+            }, {
+                text: '取消',
+                iconCls: 'icon-cancel',
+                handler: function () {
+                    addCommunityDialog.dialog('close');
+                    editCommunityDialog.dialog('close');
+                }
+            }]
+        });
+
+        const id = new URLSearchParams(window.location.search).get('userId');
+        document.querySelector('#index').href += "?userId="+id;
+        document.querySelector('#community').href += "?userId="+id;
+        document.querySelector('#user').href += "?userId="+id;
+        document.querySelector('#log').href += "?userId="+id;
+
+        // 初始化社区表格
+        $('#community-table').datagrid({
+            url: 'http://127.0.0.1:8080/communities',
+            method: 'get',
+            fit: true,
+            fitColumns: true,
+            striped: true,
+            rownumbers: true,
+            pagination: true,
+            pageSize: 20,
+            pageList: [10, 20, 30, 40, 50],
+            toolbar: '#community-toolbar',
+            columns: [[
+                { field: 'name', title: '社区名称', width: 100 },
+                { field: 'adminId', title: '管理员ID', width: 150 },
+                { field: 'address', title: '地址', width: 100 },
+                { field: 'createTime', title: '创建时间', width: 150 },
+                { field: 'updateTime', title: '最近更新时间', width: 150 },
+                { field: 'action', title: '操作', width: 150, formatter: actionFormatter }
+            ]]
+        });
+    });
 </script>
+
 </html>

@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>数据统计</title>
+    <title>社区网格管理系统</title>
     <!-- 引入EasyUI的jQuery库文件 -->
     <script type="text/javascript" src="libs/jquery.min.js"></script>
 
@@ -87,7 +87,7 @@
         }
     </style>
 </head>
-<body class="easyui-layout" onload="loadData()">
+<body class="easyui-layout">
 <div class="nav" data-options="region:'north',border:false">
     <h1>社区网格管理系统</h1>
     <ul>
@@ -110,11 +110,9 @@
     </div>
     <div style="display: flex; justify-content: space-between">
         <div style="width: 48%">
-            <h2>居民男女比例</h2>
             <div id="gender-chart" style="height: 400px"></div>
         </div>
         <div style="width: 48%">
-            <h2>居民年龄分布</h2>
             <div id="age-chart" style="height: 400px"></div>
         </div>
     </div>
@@ -132,6 +130,7 @@
                 options += '<option value="' + community.communityId + '">' + community.name + '</option>';
             });
             $('#community-select').append(options);
+            loadData();
         });
     });
 

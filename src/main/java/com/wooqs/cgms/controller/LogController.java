@@ -23,11 +23,12 @@ public class LogController {
         return logService.getAllLogs();
     }
 
-    // 通过ID获取Log对象
+    // 通过userID获取Log对象
     @GetMapping("/{id}")
-    public Log getLogById(@PathVariable Long id) {
-        return logService.getLogById(id);
+    public List<Log> getLogByUserId(@PathVariable Long id) {
+        return logService.getLogByUserId(id);
     }
+
 
     // 添加Log对象
     @PostMapping

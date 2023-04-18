@@ -27,12 +27,16 @@
         SELECT * FROM population WHERE communityId = #{id}
     </select>
 
+    <select id="search" resultMap="populationResultMap" parameterType="java.lang.Long">
+        SELECT * FROM population WHERE name REGEXP #{name} AND communityId = #{id}
+    </select>
+
     <select id="getAll" resultMap="populationResultMap">
         SELECT * FROM population
     </select>
 
     <insert id="insert" parameterType="com.wooqs.cgms.model.Population" useGeneratedKeys="true" keyProperty="populationId">
-        INSERT INTO population(communityId, name, gender, age, job, id_card, hometown, address)
+        INSERT INTO population(communityId, name, gender, age, job, idCard, hometown, address)
         VALUES(#{communityId}, #{name}, #{gender}, #{age}, #{job}, #{idCard}, #{hometown}, #{address})
     </insert>
 

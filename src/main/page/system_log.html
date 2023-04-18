@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
-    <title>数据统计</title>
+    <title>社区网格管理系统</title>
     <!-- 引入EasyUI的jQuery库文件 -->
     <script type="text/javascript" src="libs/jquery.min.js"></script>
 
     <!-- 引入EasyUI的EasyUI库文件 -->
     <script type="text/javascript" src="libs/jquery.easyui.min.js"></script>
 
+    <script type="text/javascript" src="js/datagrid-export.js"></script>
+
     <!-- 引入EasyUI的样式文件 -->
     <link rel="stylesheet" type="text/css" href="libs/themes/default/easyui.css">
 
     <style type="text/css">
-
         /* 调整顶部导航栏样式 */
         .nav {
             height: 60px;
@@ -24,23 +26,28 @@
             align-items: center;
             padding: 0 20px;
         }
+
         .nav h1 {
             margin: 0;
         }
+
         .nav ul {
             margin: 0;
             padding: 0;
             list-style: none;
             display: flex;
         }
+
         .nav li {
             margin-right: 30px;
             font-size: 16px;
         }
+
         .nav a {
             text-decoration: none;
             color: #333;
         }
+
         .nav a:hover {
             color: #000;
         }
@@ -53,20 +60,24 @@
             height: calc(100vh - 60px);
             overflow-y: auto;
         }
+
         .sidebar ul {
             margin: 0;
             padding: 0;
             list-style: none;
         }
+
         .sidebar li {
             margin-top: 25px;
             margin-left: 50px;
             font-size: 20px;
         }
+
         .sidebar a {
             text-decoration: none;
             color: #333;
         }
+
         .sidebar a:hover {
             color: #000;
             font-weight: bold;
@@ -79,46 +90,159 @@
             width: 80%;
         }
 
-        .main tr {
-            margin: 0;
+        .action-bar {
+            margin-bottom: 10px;
+        }
+
+        .easyui-searchbox {
+            width: 250px;
+            margin-right: 10px;
+        }
+
+        .easyui-linkbutton {
+            margin-right: 10px;
+        }
+
+        #log-table {
+            width: 100%;
+            height: 90px;
+        }
+
+        #user-modal {
+            width: 400px;
+            height: 300px;
+        }
+
+        .fitem {
+            margin-bottom: 10px;
+        }
+
+        .fitem label {
+            display: inline-block;
+            width: 80px;
+        }
+
+        .fitem input,
+        .fitem select {
+            width: 200px;
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .fitem input:focus,
+        .fitem select:focus {
+            border-color: #8cc2ff;
+            box-shadow: 0 0 2px #8cc2ff;
+        }
+
+        .fitem .validatebox-invalid {
+            border-color: #f00;
+            box-shadow: 0 0 2px #f00;
+        }
+
+        .fitem .validatebox-invalid:focus {
+            border-color: #f00;
+            box-shadow: 0 0 2px #f00;
+        }
+
+        .easyui-dialog {
+            padding: 10px;
         }
     </style>
 </head>
+
 <body class="easyui-layout">
-    <div class="nav" data-options="region:'north',border:false">
-        <h1>社区网格管理系统</h1>
-        <ul>
-            <li><a href="login.html">退出</a></li>
-        </ul>
+<div class="nav" data-options="region:'north',border:false">
+    <h1>社区网格管理系统</h1>
+    <ul>
+        <li><a href="login.html">退出</a></li>
+    </ul>
+</div>
+<div class="sidebar" data-options="region:'west',split:true,border:false">
+    <ul>
+        <li><a id="index" href="system_index.html">数据统计</a></li>
+        <li><a id="user" href="system_user.html">用户管理</a></li>
+        <li><a id="community" href="system_community.html">社区管理</a></li>
+        <li><a id="log" href="system_log.html" style="font-weight: bold">日志查看</a></li>
+    </ul>
+</div>
+<div class="main" data-options="region:'center',split:true,border:false">
+    <!-- 操作栏，包含搜索框和导出excel按钮  -->
+    <div class="datagrid-toolbar">
+        <input type="text" placeholder="搜索日志" class="easyui-searchbox" data-options="
+                prompt:'请输入用户ID',
+                searcher: searchLog
+            " />
+        <a href="#" class="easyui-linkbutton" data-options="
+                iconCls: 'icon-excel',
+                plain: true,
+                onClick : exportExcel
+            ">导出Excel</a>
     </div>
-    <div class="sidebar" data-options="region:'west',split:true,border:false">
-        <ul>
-            <li><a href="system_index.html">数据统计</a></li>
-            <li><a href="system_user.html">用户管理</a></li>
-            <li><a href="system_community.html">社区管理</a></li>
-            <li><a href="system_log.html" style="font-weight: bold">日志查看</a></li>
-        </ul>
-    </div>
-    <div class="main" data-options="region:'center',border:false">
-        <table id="datagrid" class="easyui-datagrid" style="width:100%;height:100%;">
-            <thead>
-                <tr>
-                    <th data-options="field:'name',width:100">姓名</th>
-                    <th data-options="field:'email',width:150">邮箱</th>
-                    <th data-options="field:'phone',width:100">电话</th>
-                </tr>
-            </thead>
+
+    <!-- 日志列表 -->
+    <div style="height: 95%">
+        <table id="log-table" class="easyui-datagrid">
         </table>
     </div>
+</div>
 </body>
 <script type="text/javascript">
-$(function(){
-    //获取所有用户信息
-    $.get("http://127.0.0.1:8080/users", function(data){
-        //将数据填充到表格中
-        $('#datagrid').datagrid('loadData', data);
-    });
-});
+    // 搜索日志
+    function searchLog(value) {
+        $('#log-table').datagrid({
+            url: 'http://127.0.0.1:8080/logs/' + value,
+            method: 'get',
+            fit: true,
+            fitColumns: true,
+            striped: true,
+            rownumbers: true,
+            rowIndex: 'logId',
+            pagination: true,
+            pageSize: 20,
+            pageList: [10, 20, 30, 40, 50],
+            toolbar: '#log-toolbar',
+            columns: [[
+                { field: 'userId', title: '操作用户ID', width: 100 },
+                { field: 'type', title: '类型', width: 100 },
+                { field: 'time', title: '时间', width: 100 },
+                { field: 'description', title: '详情', width: 150 }
+            ]]
+        });
+    }
 
+    // 导出excel
+    function exportExcel() {
+        $('#log-table').datagrid('toExcel','dg.xls');
+    }
+
+    $(function () {
+        const id = new URLSearchParams(window.location.search).get('userId');
+        document.querySelector('#index').href += "?userId="+id;
+        document.querySelector('#community').href += "?userId="+id;
+        document.querySelector('#user').href += "?userId="+id;
+        document.querySelector('#log').href += "?userId="+id;
+        // 初始化日志表格
+        $('#log-table').datagrid({
+            url: 'http://127.0.0.1:8080/logs',
+            method: 'get',
+            fit: true,
+            fitColumns: true,
+            striped: true,
+            rownumbers: true,
+            pagination: true,
+            pageSize: 20,
+            pageList: [10, 20, 30, 40, 50],
+            toolbar: '#log-toolbar',
+            columns: [[
+                { field: 'userId', title: '操作用户ID', width: 100 },
+                { field: 'type', title: '类型', width: 100 },
+                { field: 'time', title: '时间', width: 100 },
+                { field: 'description', title: '详情', width: 150 }
+            ]]
+        });
+    });
 </script>
+
 </html>

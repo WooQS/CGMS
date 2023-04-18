@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -23,7 +24,7 @@ public class CommunityController {
     }
 
     // 通过ID获取Community对象
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ResponseEntity<Community> getById(@PathVariable Long id) {
         Community community = communityService.getById(id);
         if (community != null) {
@@ -44,6 +45,17 @@ public class CommunityController {
         }
     }
 
+    // 通过社区名称获取Community对象
+    @GetMapping("/{name}")
+    public ResponseEntity<List<Community>> search(@PathVariable String name) {
+        List<Community> community = communityService.search(name);
+        if (community != null) {
+            return new ResponseEntity<>(community, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     // 获取所有Community对象
     @GetMapping
     public List<Community> getAll() {
@@ -53,21 +65,23 @@ public class CommunityController {
     // 保存Community对象
     @PostMapping
     public ResponseEntity<Community> save(@RequestBody Community community) {
-        communityService.save(community);
-        return new ResponseEntity<>(community, HttpStatus.CREATED);
+        try{communityService.save(community);}
+        catch(Exception MySQLIntegrityConstraintViolationException){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(community, HttpStatus.OK);
     }
 
     // 更新Community对象
-    @PutMapping("/{id}")
-    public ResponseEntity<Community> update(@PathVariable Long id, @RequestBody Community community) {
-        Community existingCommunity = communityService.getById(id);
-        if (existingCommunity != null) {
-            existingCommunity.setName(community.getName());
-            communityService.update(existingCommunity);
-            return new ResponseEntity<>(existingCommunity, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Void> update(@PathVariable Long id, @RequestBody Community community) {
+        community.setCommunityId(id);
+        community.setUpdateTime(LocalDateTime.now());
+        try{communityService.update(community);}
+        catch(Exception MySQLIntegrityConstraintViolationException){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     // 删除Community对象
@@ -75,7 +89,11 @@ public class CommunityController {
     public ResponseEntity<Void> deleteById(@PathVariable Long id) {
         Community existingCommunity = communityService.getById(id);
         if (existingCommunity != null) {
-            communityService.deleteById(id);
+            try{
+                communityService.deleteById(id);
+            }catch (Exception MySQLIntegrityConstraintViolationException){
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
             return new ResponseEntity<>(HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

@@ -28,6 +28,13 @@ public class CommunityServiceImpl implements CommunityService {
     public List<Community> getByAdminId(Long AdminId) {
         return communityMapper.getByAdminId(AdminId);
     }
+
+    //根据社区名称搜索社区信息
+    @Override
+    public List<Community> search(String name) {
+        return communityMapper.search(name);
+    }
+
     //获取所有社区信息列表
     @Override
     public List<Community> getAll() {

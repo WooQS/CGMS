@@ -25,7 +25,7 @@ public class PopulationController {
     }
 
     // 根据ID获取一个Population记录
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ResponseEntity<Population> getPopulationById(@PathVariable Long id) {
         Population population = populationService.getPopulationById(id);
         return new ResponseEntity<>(population, HttpStatus.OK);
@@ -38,20 +38,33 @@ public class PopulationController {
         return new ResponseEntity<>(populations, HttpStatus.OK);
     }
 
+    // 根据姓名获取Population记录
+    @GetMapping("/{name}&{communityId}")
+    public ResponseEntity<List<Population>> search(@PathVariable String name, @PathVariable Long communityId) {
+        List<Population> populations = populationService.search(name,communityId);
+        return new ResponseEntity<>(populations, HttpStatus.OK);
+    }
+
 
     // 添加一个新的Population记录
     @PostMapping
     public ResponseEntity<Void> addPopulation(@RequestBody Population population) {
-        populationService.addPopulation(population);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        try{populationService.addPopulation(population);}
+        catch (Exception MySQLIntegrityConstraintViolationException){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     // 根据ID更新一个Population记录
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<Void> updatePopulation(@PathVariable Long id, @RequestBody Population population) {
         population.setPopulationId(id);
-        populationService.updatePopulation(population);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        try{populationService.updatePopulation(population);}
+        catch (Exception MySQLIntegrityConstraintViolationException){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     // 根据ID删除一个Population记录

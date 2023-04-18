@@ -9,6 +9,8 @@ public interface UserService {
     User getById(Long id);
     // 根据用户名获取用户信息
     User getByUsername(String username);
+    // 根据用户名搜索用户信息
+    List<User> search(String username);
     // 获取所有用户信息
     List<User> getAll();
     // 保存用户信息

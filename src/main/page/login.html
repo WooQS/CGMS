@@ -22,10 +22,11 @@
 					dataType: "json",
 					success: function(result) {
 						if(result) {
+							addLog("登录","用户名："+result.username);
 							// 登录成功，根据用户角色跳转到不同页面
 							$.messager.alert("提示", "登录成功！", "info");
 							if(result.roleId == 1) {
-								window.location.href = "system_index.html";
+								window.location.href = "system_index.html?userId="+result.userId;
 							} else {
 								window.location.href = "admin_index.html?userId="+result.userId;
 							}
@@ -42,6 +43,19 @@
 				$("#loginForm").form("reset");
 			});
 		});
+
+		function addLog(type,value){
+			const id = new URLSearchParams(window.location.search).get('userId');
+			var log = '{"userId":"'+id+'","type":"'+type+'","description":"'+value+'"}"';
+			console.log(log);
+			$.ajax({
+				url: 'http://localhost:8080/logs',
+				data: log,
+				type: 'post',
+				contentType: "application/json;charset=UTF-8",
+				dataType: 'json',
+			});
+		}
 	</script>
 </head>
 <body>
